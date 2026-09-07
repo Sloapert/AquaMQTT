@@ -6,6 +6,8 @@ namespace aquamqtt
 namespace config
 {
 
+// used only as a fallback on the very first boot; if left blank, or if this network cannot be reached,
+// the device opens a wifi setup page of its own, see config::networkName in Configuration.h
 constexpr char     ssid[]           = "ExampleSSID";
 constexpr char     psk[]            = "ExamplePSK";
 constexpr char     brokerAddr[]     = "192.168.188.1";

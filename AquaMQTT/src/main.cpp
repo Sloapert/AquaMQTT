@@ -3,6 +3,7 @@
 
 #include "config/Configuration.h"
 #include "handler/OTA.h"
+#include "handler/OTAWebUpdate.h"
 #include "handler/RTC.h"
 #include "handler/Wifi.h"
 #include "task/ControllerTask.h"
@@ -13,13 +14,14 @@
 using namespace aquamqtt;
 using namespace aquamqtt::config;
 
-HMITask        hmiTask;
-ControllerTask controllerTask;
-ListenerTask   listenerTask;
-MQTTTask       mqttTask;
-OTAHandler     otaHandler;
-RTCHandler     rtcHandler;
-WifiHandler    wifiHandler;
+HMITask             hmiTask;
+ControllerTask      controllerTask;
+ListenerTask        listenerTask;
+MQTTTask            mqttTask;
+OTAHandler          otaHandler;
+OTAWebUpdateHandler otaWebUpdateHandler;
+RTCHandler          rtcHandler;
+WifiHandler         wifiHandler;
 
 esp_task_wdt_config_t twdt_config = {
     .timeout_ms     = WATCHDOG_TIMEOUT_MS,
@@ -38,6 +40,9 @@ void loop()
 
     // handle over-the-air module in main thread
     otaHandler.loop();
+
+    // handle web-based over-the-air update page in main thread
+    otaWebUpdateHandler.loop();
 
     // handle real-time-clock module in main thread
     rtcHandler.loop();
@@ -62,6 +67,9 @@ void setup()
 
     // setup ota module
     otaHandler.setup();
+
+    // setup web-based ota update page
+    otaWebUpdateHandler.setup();
 
     // if listener mode is set in configuration, just read the DHW traffic from a single One-Wire USART instance
     if (OPERATION_MODE == LISTENER)

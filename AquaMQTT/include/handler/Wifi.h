@@ -2,6 +2,7 @@
 #define AQUAMQTT_WIFI_H
 
 #include <WiFi.h>
+#include <WiFiManager.h>
 
 namespace aquamqtt
 {
@@ -20,6 +21,9 @@ private:
     static void wifiCallback(WiFiEvent_t event);
 
     unsigned long mLastCheck;
+
+    // drives the (non-blocking) wifi setup captive portal, used whenever no known network can be reached
+    WiFiManager mWifiManager;
 
     static bool mConnectedToWifiWithValidIpAddress;
 

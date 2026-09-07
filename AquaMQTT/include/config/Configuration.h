@@ -162,6 +162,15 @@ constexpr float CLIMATE_CARD_MAX_TEMPERATURE = 61.0;
 constexpr float CLIMATE_CARD_STEP_TEMPERATURE = 1.0;
 
 /**
+ * Enable a web page at http://<device-ip>/update for uploading a new firmware (.bin) from a browser,
+ * as an alternative to network OTA via PlatformIO/Arduino IDE (ArduinoOTA) or a USB/serial flash.
+ * The upload is not password protected, but the device performs a basic sanity check on the uploaded
+ * file (filename and esp32 app image header) before accepting it. Anyone able to reach the device on
+ * your network can use this page, so disable it if that is not acceptable for your network.
+ */
+constexpr bool ENABLE_OTA_WEBUPDATE = true;
+
+/**
  * Self-explanatory internal settings: most probably you don't want to change them.
  */
 constexpr uint32_t WATCHDOG_TIMEOUT_MS    = 60000;
