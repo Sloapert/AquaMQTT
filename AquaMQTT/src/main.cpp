@@ -1,9 +1,12 @@
 #include <Arduino.h>
+#include <WebServer.h>
 #include <esp_task_wdt.h>
 
 #include "config/Configuration.h"
 #include "handler/OTA.h"
+#include "handler/OTAWebUpdate.h"
 #include "handler/RTC.h"
+#include "handler/StatusPage.h"
 #include "handler/Wifi.h"
 #include "task/ControllerTask.h"
 #include "task/HMITask.h"
@@ -20,6 +23,12 @@ MQTTTask       mqttTask;
 OTAHandler     otaHandler;
 RTCHandler     rtcHandler;
 WifiHandler    wifiHandler;
+
+// shared by otaWebUpdateHandler and statusPageHandler, which only register routes on it
+WebServer webServer(80);
+
+OTAWebUpdateHandler otaWebUpdateHandler(webServer);
+StatusPageHandler   statusPageHandler(webServer);
 
 esp_task_wdt_config_t twdt_config = {
     .timeout_ms     = WATCHDOG_TIMEOUT_MS,
@@ -38,6 +47,9 @@ void loop()
 
     // handle over-the-air module in main thread
     otaHandler.loop();
+
+    // handle web server (status page + web-based ota update page) in main thread
+    webServer.handleClient();
 
     // handle real-time-clock module in main thread
     rtcHandler.loop();
@@ -62,6 +74,11 @@ void setup()
 
     // setup ota module
     otaHandler.setup();
+
+    // register web-based ota update page and status page routes, then start the shared web server
+    otaWebUpdateHandler.setup();
+    statusPageHandler.setup();
+    webServer.begin();
 
     // if listener mode is set in configuration, just read the DHW traffic from a single One-Wire USART instance
     if (OPERATION_MODE == LISTENER)

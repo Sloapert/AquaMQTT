@@ -160,7 +160,21 @@ void MainStateProxy::onInstallationModeChanged(std::unique_ptr<message::HMIInsta
 
 void MainStateProxy::onResetOverrides()
 {
-    // noop
+    if (!xSemaphoreTake(mMutex, portMAX_DELAY))
+    {
+        return;
+    }
+
+    mPVModeHeatPump    = false;
+    mPVModeHeatElement = false;
+
+    // message 193 has changed
+    if (mNotify != nullptr)
+    {
+        xTaskNotifyIndexed(mNotify, 0, (1UL << 7UL), eSetBits);
+    }
+
+    xSemaphoreGive(mMutex);
 }
 
 AquaMqttMainOverrides MainStateProxy::getOverrides() const

@@ -162,6 +162,22 @@ constexpr float CLIMATE_CARD_MAX_TEMPERATURE = 61.0;
 constexpr float CLIMATE_CARD_STEP_TEMPERATURE = 1.0;
 
 /**
+ * Enable a web page at http://<device-ip>/update for uploading a new firmware (.bin) from a browser,
+ * as an alternative to network OTA via PlatformIO/Arduino IDE (ArduinoOTA) or a USB/serial flash.
+ * The upload is not password protected, but the device performs a basic sanity check on the uploaded
+ * file (filename and esp32 app image header) before accepting it. Anyone able to reach the device on
+ * your network can use this page, so disable it if that is not acceptable for your network.
+ */
+constexpr bool ENABLE_OTA_WEBUPDATE = true;
+
+/**
+ * Enable a status page at http://<device-ip>/ showing the latest known boiler information and settings
+ * (water temperature, operation mode, energy counters, AquaMQTT overrides, wifi/system info, ...), the
+ * same information already available via MQTT. Read-only, but reachable by anyone on your network.
+ */
+constexpr bool ENABLE_STATUS_WEBPAGE = true;
+
+/**
  * Self-explanatory internal settings: most probably you don't want to change them.
  */
 constexpr uint32_t WATCHDOG_TIMEOUT_MS    = 60000;

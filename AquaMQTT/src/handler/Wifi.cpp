@@ -21,8 +21,23 @@ void WifiHandler::setup()
     // we trust the wifi callbacks to determine if we are properly connected or disconnected
     WiFi.onEvent(wifiCallback);
 
-    // begin a single wifi session
-    WiFi.begin(aquamqtt::config::ssid, aquamqtt::config::psk);
+    // On the very first boot (i.e. no wifi network has ever been associated with this device, neither
+    // through the captive portal below nor a previous firmware version), seed the wifi credentials from
+    // Configuration.h so existing installs keep working without having to go through the portal. Once a
+    // network has been associated (via this fallback or the portal), it is persisted by the esp32 and this
+    // is skipped on subsequent boots.
+    if (WiFi.SSID().length() == 0 && strlen(config::ssid) > 0)
+    {
+        WiFi.begin(config::ssid, config::psk);
+    }
+
+    // Run the config portal in the background instead of blocking setup(). If no wifi network is reachable,
+    // this starts an access point named after config::networkName so a phone or laptop can connect to it
+    // and enter wifi credentials through a web page served at 192.168.4.1. The DHW serial relay tasks are
+    // independent of wifi and keep controlling/monitoring the heatpump normally while the portal is open.
+    mWifiManager.setConfigPortalBlocking(false);
+    mWifiManager.setHostname(config::networkName);
+    mWifiManager.autoConnect(config::networkName);
 
     // perform the next wifi check in config::WIFI_RECONNECT_CYCLE_S
     mLastCheck = millis();
@@ -30,12 +45,16 @@ void WifiHandler::setup()
 
 void WifiHandler::loop()
 {
+    // drives the non-blocking config portal while it is active, no-op otherwise
+    mWifiManager.process();
+
     if ((millis() - mLastCheck) >= (config::WIFI_RECONNECT_CYCLE_S * 1000))
     {
         mLastCheck = millis();
 
         // we don't trust WiFi.isConnected() or WiFi.status() == WL_CONNECTED, since it is suspected to be unreliable
-        if (!mConnectedToWifiWithValidIpAddress)
+        // don't fight the config portal for the radio while the user is entering wifi credentials
+        if (!mConnectedToWifiWithValidIpAddress && !mWifiManager.getConfigPortalActive())
         {
             Serial.println("[wifi] attempting reconnect");
             WiFi.disconnect();
