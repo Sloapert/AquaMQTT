@@ -339,13 +339,15 @@ static bool buildConfiguration(
             doc["dev_cla"]      = "energy";
             break;
         case MQTT_ITEM_SENSOR::ENERGY_POWER_TOTAL:
-            doc["name"]         = "Power Consumed Total";
+            // note: despite the name, this is a monotonically increasing energy counter, not an instantaneous
+            // power reading, see https://github.com/tspopp/AquaMQTT/issues/106
+            doc["name"]         = "Energy Consumed Total";
             doc["stat_t"]       = "~/energy/powerTotal";
-            doc["unit_of_meas"] = "W";
-            doc["stat_cla"]     = "measurement";
+            doc["unit_of_meas"] = "Wh";
+            doc["stat_cla"]     = "total_increasing";
             doc["ic"]           = "mdi:lightning-bolt-outline";
             doc["uniq_id"]      = make_unique(temp, identifier, "energy_power_total");
-            doc["dev_cla"]      = "power";
+            doc["dev_cla"]      = "energy";
             break;
         case MQTT_ITEM_SENSOR::ENERGY_VOLTAGE_GRID:
             if (protocolVersion != message::ProtocolVersion::PROTOCOL_ODYSSEE)
@@ -377,26 +379,30 @@ static bool buildConfiguration(
             {
                 return false;
             }
-            doc["name"]         = "Power Consumed Heating Element";
+            // note: despite the name, this is a monotonically increasing energy counter, not an instantaneous
+            // power reading, see https://github.com/tspopp/AquaMQTT/issues/106
+            doc["name"]         = "Energy Consumed Heating Element";
             doc["stat_t"]       = "~/energy/powerHeatingElem";
-            doc["unit_of_meas"] = "W";
-            doc["stat_cla"]     = "measurement";
+            doc["unit_of_meas"] = "Wh";
+            doc["stat_cla"]     = "total_increasing";
             doc["ic"]           = "mdi:lightning-bolt";
             doc["uniq_id"]      = make_unique(temp, identifier, "energy_power_he");
-            doc["dev_cla"]      = "power";
+            doc["dev_cla"]      = "energy";
             break;
         case MQTT_ITEM_SENSOR::ENERGY_POWER_HEATPUMP:
             if (protocolVersion != message::ProtocolVersion::PROTOCOL_LEGACY)
             {
                 return false;
             }
-            doc["name"]         = "Power Consumed Heatpump";
+            // note: despite the name, this is a monotonically increasing energy counter, not an instantaneous
+            // power reading, see https://github.com/tspopp/AquaMQTT/issues/106
+            doc["name"]         = "Energy Consumed Heatpump";
             doc["stat_t"]       = "~/energy/powerHeatpump";
-            doc["unit_of_meas"] = "W";
-            doc["stat_cla"]     = "measurement";
+            doc["unit_of_meas"] = "Wh";
+            doc["stat_cla"]     = "total_increasing";
             doc["ic"]           = "mdi:lightning-bolt";
             doc["uniq_id"]      = make_unique(temp, identifier, "energy_power_hp");
-            doc["dev_cla"]      = "power";
+            doc["dev_cla"]      = "energy";
             break;
         case MQTT_ITEM_SENSOR::ENERGY_TOTAL_WATER_PRODUCTION:
             if (protocolVersion != message::ProtocolVersion::PROTOCOL_LEGACY)
@@ -1519,9 +1525,14 @@ static bool buildConfiguration(
 
             // Preset modes (must match device payloads exactly)
             doc["pr_mode_stat_t"] = "~/hmi/operationMode";
-            doc["pr_mode_cmd_t"]  = "~/ctrl/operationMode";
-            doc["pr_modes"][0]    = mqtt::ENUM_OPERATION_MODE_BOOST;
-            doc["pr_modes"][1]    = mqtt::ENUM_OPERATION_MODE_ABSENCE;
+            // operationMode also carries values (AUTO, MAN ECO OFF, MAN ECO ON) which are not presets but
+            // regular hvac modes handled above via mode_stat_tpl. Map those to 'None' here, otherwise Home
+            // Assistant logs a warning since they are not part of pr_modes.
+            doc["pr_mode_stat_tpl"]
+                    = "{% set map = {'BOOST': 'BOOST', 'ABSENCE': 'ABSENCE'} %} {{ map.get(value, 'None') }}";
+            doc["pr_mode_cmd_t"] = "~/ctrl/operationMode";
+            doc["pr_modes"][0]   = mqtt::ENUM_OPERATION_MODE_BOOST;
+            doc["pr_modes"][1]   = mqtt::ENUM_OPERATION_MODE_ABSENCE;
             break;
         default:
             return false;

@@ -75,14 +75,21 @@ void HMIStateProxy::applyHMIOverrides(uint8_t* buffer, const message::ProtocolVe
             message->setAttr(message::HMI_ATTR_U8::OPERATION_MODE, message::HMIOperationMode::OM_ECO_INACTIVE);
             message->setAttr(message::HMI_ATTR_FLOAT::WATER_TARGET_TEMPERATURE, config::MAX_WATER_TEMPERATURE);
             // just use heat element
-            message->setAttr(message::HMI_ATTR_BOOL::EMERGENCY_MODE_ENABLED, true);
+            // heating element must be allowed before emergency mode can be enabled, since enabling emergency
+            // mode is rejected by the message implementation while the heating element is still disallowed
             message->setAttr(message::HMI_ATTR_BOOL::HEATING_ELEMENT_ALLOWED, true);
+            message->setAttr(message::HMI_ATTR_BOOL::EMERGENCY_MODE_ENABLED, true);
             break;
         case AM_MODE_PV_FULL:
             message->setAttr(message::HMI_ATTR_U8::STATE_INSTALLATION_MODE, message::HMIInstallation::INST_HP_ONLY);
             message->setAttr(message::HMI_ATTR_U8::OPERATION_TYPE, message::HMIOperationType::OT_ALWAYS_ON);
             message->setAttr(message::HMI_ATTR_U8::OPERATION_MODE, message::HMIOperationMode::OM_BOOST);
             message->setAttr(message::HMI_ATTR_FLOAT::WATER_TARGET_TEMPERATURE, config::MAX_WATER_TEMPERATURE);
+            // use both heat pump and heat element, see README-PV.md
+            // heating element must be allowed before emergency mode can be enabled, since enabling emergency
+            // mode is rejected by the message implementation while the heating element is still disallowed
+            message->setAttr(message::HMI_ATTR_BOOL::HEATING_ELEMENT_ALLOWED, true);
+            message->setAttr(message::HMI_ATTR_BOOL::EMERGENCY_MODE_ENABLED, true);
             break;
         case AM_MODE_STANDARD:
         {
@@ -336,6 +343,8 @@ void HMIStateProxy::onResetOverrides()
     mAirductConfig         = std::unique_ptr<message::HMIAirDuctConfig>(nullptr);
     mEmergencyModeEnabled  = std::unique_ptr<bool>(nullptr);
     mHeatingElementEnabled = std::unique_ptr<bool>(nullptr);
+    mPVModeHeatPump        = false;
+    mPVModeHeatElement     = false;
 
     // message 194 has changed
     if (mNotify != nullptr)

@@ -264,6 +264,7 @@ void MQTTTask::messageReceived(const String& topic, const String& payload)
     else if (strstr_P(topic.c_str(), AQUAMQTT_RESET_OVERRIDES) != nullptr)
     {
         HMIStateProxy::getInstance().onResetOverrides();
+        MainStateProxy::getInstance().onResetOverrides();
     }
 }
 
