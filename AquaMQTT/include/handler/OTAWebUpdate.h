@@ -7,20 +7,19 @@ namespace aquamqtt
 {
 
 /**
- * Serves a small web page at http://<device-ip>/update which accepts a firmware (.bin) upload from a
- * browser, as an alternative to network OTA via PlatformIO/Arduino IDE or a USB/serial flash. See
- * config::ENABLE_OTA_WEBUPDATE.
+ * Registers a page at http://<device-ip>/update which accepts a firmware (.bin) upload from a browser,
+ * as an alternative to network OTA via PlatformIO/Arduino IDE or a USB/serial flash. See
+ * config::ENABLE_OTA_WEBUPDATE. Routes are registered on a WebServer instance owned and driven
+ * (begin()/handleClient()) elsewhere, so this can share one web server/port with other pages.
  */
 class OTAWebUpdateHandler
 {
 public:
-    OTAWebUpdateHandler();
+    explicit OTAWebUpdateHandler(WebServer& server);
 
     virtual ~OTAWebUpdateHandler() = default;
 
     void setup();
-
-    void loop();
 
 private:
     void handleUpdatePage();
@@ -29,7 +28,7 @@ private:
 
     void handleUpdateResult();
 
-    WebServer mServer;
+    WebServer& mServer;
 
     bool mUpdateStarted;
     bool mUpdateAborted;

@@ -171,6 +171,13 @@ constexpr float CLIMATE_CARD_STEP_TEMPERATURE = 1.0;
 constexpr bool ENABLE_OTA_WEBUPDATE = true;
 
 /**
+ * Enable a status page at http://<device-ip>/ showing the latest known boiler information and settings
+ * (water temperature, operation mode, energy counters, AquaMQTT overrides, wifi/system info, ...), the
+ * same information already available via MQTT. Read-only, but reachable by anyone on your network.
+ */
+constexpr bool ENABLE_STATUS_WEBPAGE = true;
+
+/**
  * Self-explanatory internal settings: most probably you don't want to change them.
  */
 constexpr uint32_t WATCHDOG_TIMEOUT_MS    = 60000;

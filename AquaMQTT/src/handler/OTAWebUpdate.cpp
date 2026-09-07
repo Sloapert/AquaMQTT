@@ -18,13 +18,13 @@ constexpr char UPDATE_PAGE[] =
         "<form method='POST' action='/update' enctype='multipart/form-data'>"
         "<input type='file' name='firmware' accept='.bin'>"
         "<input type='submit' value='Upload'>"
-        "</form></body></html>";
+        "</form><p><a href='/'>Back to status page</a></p></body></html>";
 
 // the first byte of a valid esp32 application image is always this magic byte
 constexpr uint8_t ESP32_APP_IMAGE_MAGIC_BYTE = 0xE9;
 }  // namespace
 
-OTAWebUpdateHandler::OTAWebUpdateHandler() : mServer(80), mUpdateStarted(false), mUpdateAborted(false)
+OTAWebUpdateHandler::OTAWebUpdateHandler(WebServer& server) : mServer(server), mUpdateStarted(false), mUpdateAborted(false)
 {
 }
 
@@ -42,18 +42,6 @@ void OTAWebUpdateHandler::setup()
             HTTP_POST,
             [this]() { handleUpdateResult(); },
             [this]() { handleUpdateUpload(); });
-
-    mServer.begin();
-}
-
-void OTAWebUpdateHandler::loop()
-{
-    if (!config::ENABLE_OTA_WEBUPDATE)
-    {
-        return;
-    }
-
-    mServer.handleClient();
 }
 
 void OTAWebUpdateHandler::handleUpdatePage()
