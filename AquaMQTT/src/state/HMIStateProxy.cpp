@@ -62,7 +62,11 @@ void HMIStateProxy::applyHMIOverrides(uint8_t* buffer, const message::ProtocolVe
                 // This configuration is not allowed in the HMI controller, but we hope the Main controller accepts it :)
                 message->setAttr(message::HMI_ATTR_U8::OPERATION_MODE, message::HMIOperationMode::OM_ECO_ACTIVE);
             } else {
-                message->setAttr(message::HMI_ATTR_U8::OPERATION_MODE, message::HMIOperationMode::OM_ECO_INACTIVE);
+                // ECO INACTIVE ("MAN ECO OFF") appears to have its own, appliance-side startup delay/threshold
+                // before the heat pump actually kicks in (see https://github.com/tspopp/AquaMQTT/issues/119),
+                // unlike BOOST which starts immediately. Heating element stays explicitly disabled below, so
+                // this still only uses the heat pump, not the heating element.
+                message->setAttr(message::HMI_ATTR_U8::OPERATION_MODE, message::HMIOperationMode::OM_BOOST);
             }
             message->setAttr(message::HMI_ATTR_FLOAT::WATER_TARGET_TEMPERATURE, config::MAX_WATER_TEMPERATURE);
             // do not use heat element

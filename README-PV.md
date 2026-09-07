@@ -22,12 +22,16 @@ The heat pump will try to reach maximum allowed temperature using the heat pump,
 
 Active Overrides (Direction HMI to MAIN):
 - Installation Mode is set to `HEATPUMP ONLY` (we don't want to use an external boiler if any connected)
-- OperationMode is set to "`MAN ECO OFF`"
+- OperationMode is set to "`BOOST`" (on Odyssee: "`MAN ECO ON`" instead, since Odyssee has no way to disable the heat element)
 - OperationType is set to "`ALWAYS ON`"
 - Water Temperature is set to `62°C`
 - Heating Element is set to `disabled`
 - Emergeny Mode is turned `off`
 - Consumes about `300 - 550W`
+
+Note: this used to set OperationMode to "`MAN ECO OFF`", but that mode appears to have its own, appliance-side
+startup delay before the heat pump actually kicks in (see [tspopp/AquaMQTT#119](https://github.com/tspopp/AquaMQTT/issues/119)).
+`BOOST` starts the heat pump immediately, while the heating element stays disabled just like before.
 
 Active Overrides (Direction MAIN to HMI):
 - Solar State is set to `true` (shows Solar Icon on the HMI Display)
